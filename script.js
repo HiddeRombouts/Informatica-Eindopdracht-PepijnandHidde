@@ -74,8 +74,19 @@ class Jos {
          else {
            return false; //en anders word Jos niet geraakt
          }
-       }
-
+  }
+  opgeblazen(bommen) {
+    for (let i = bommen.length - 1; i >= 0; i--) {
+      let bom = bommen[i];
+      if (this.x == bom.x && this.y == bom.y) {
+        bommen.splice(i, 1); 
+        this.levens -= 1; 
+        return true;
+      }
+    }
+    return false;
+  }
+  
   
   toon() {
     image(this.animatie[this.frameNummer], this.x, this.y, raster.celGrootte, raster.celGrootte);
@@ -112,7 +123,7 @@ class Appel {
   }
   toon() {
     image(this.sprite, this.x, this.y, raster.celGrootte, raster.celGrootte);
-  } //appel in het scherm tonen
+  } //appel1 in het scherm tonen
 }
 
 
@@ -137,28 +148,26 @@ class Vijand {
     } 
 }
 class Bom {
-  constructor(x,y) {
+  constructor(x, y, snelheidy) {
+    this.x = x;
     this.y = y;
-    this.x = x
     this.sprite = loadImage("images/sprites/bom.png");
-    this.stapGrootte = null;
-    this.snelheidy = null;
-  } 
+    this.snelheidy = snelheidy;  // Snelheid wordt correct ingesteld
+  }
 
   beweeg() {
-    this.y += this.snelheidy; 
+    this.y += this.snelheidy; // Bom beweegt naar beneden
 
     if (this.y <= 0 || this.y >= canvas.height - raster.celGrootte) {
-      this.snelheidy *= -1; 
-    
-    } 
-    this.y = constrain(this.y,0,canvas.height - raster.celGrootte);
+      this.snelheidy *= -1;  // Als de bom de boven- of onderkant van de canvas raakt, keert hij om
+    }
+    this.y = constrain(this.y, 0, canvas.height - raster.celGrootte); // Zorgt ervoor dat de bom binnen het canvas blijft
   }
-  toon() {
-    image(this.sprite,this.x,this.y,raster.celGrootte,raster.celGrootte);
-  } 
-}
 
+  toon() {
+    image(this.sprite, this.x, this.y, raster.celGrootte, raster.celGrootte); // Toont de bom op het canvas
+  }
+}
 
 
 function setup() {
@@ -198,8 +207,19 @@ function setup() {
   bob.stapGrootte = 1*eve.stapGrootte; //bob beweegr per cel
   bob.sprite = loadImage("images/sprites/Bob100px/Bob.png");  //bob sprite
 
-}
+bommen = [];
+  var bommenmaken = [
+  {x: floor(random(9, 18)) * raster.celGrootte, y: floor(random(0, 12)) * raster.celGrootte, snelheidy: 1.2 * eve.stapGrootte},
+  {x: floor(random(9, 18)) * raster.celGrootte, y: floor(random(0, 12)) * raster.celGrootte, snelheidy: 0.7 * eve.stapGrootte},
+  {x: floor(random(9, 18)) * raster.celGrootte, y: floor(random(0, 12)) * raster.celGrootte, snelheidy: 0.5 * eve.stapGrootte},
+  {x: floor(random(9, 18)) * raster.celGrootte, y: floor(random(0, 12)) * raster.celGrootte, snelheidy: 1.5 * eve.stapGrootte},
+  {x: floor(random(9, 18)) * raster.celGrootte, y: floor(random(0, 12)) * raster.celGrootte, snelheidy: 1 * eve.stapGrootte}
+];
 
+for (var data of bommenmaken) {
+  bommen.push(new Bom(data.x, data.y, data.snelheidy));
+}
+}
 function draw() {
   background('white'); //achtergrond is wit
   
@@ -219,6 +239,10 @@ function draw() {
   bob.toon();
   bob.beweeg();
   
+  for (let bom of bommen) {
+    bom.beweeg();
+    bom.toon();
+  }
   
   if (appel1.gegeten == false){
   appel1.beweeg();
@@ -245,6 +269,8 @@ function draw() {
   }
   if (eve.wordtGeraakt(alice) || eve.wordtGeraakt(bob)) {
     eve.levens -= 1;
+  }
+  if (eve.opgeblazen(bommen)) {
   }
   if (eve.levens == 0) {
     textSize(90);
